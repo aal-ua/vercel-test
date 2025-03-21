@@ -1,23 +1,8 @@
 import { NextResponse } from "next/server";
-import path from "path";
-import { writeFile, mkdir } from "fs/promises";
 
-// Define upload directory
-const uploadDir = path.join(process.cwd(), "public/uploads");
+export const runtime = "edge"; // Ensures it runs on Vercel Edge Functions
 
-// Ensure the upload directory exists
-async function ensureUploadDir() {
-  try {
-    await mkdir(uploadDir, { recursive: true });
-  } catch (error) {
-    console.error("Error creating upload directory:", error);
-  }
-}
-
-// Handle file upload
 export async function POST(req: Request) {
-  await ensureUploadDir();
-
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
 
@@ -25,11 +10,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
   }
 
-  const fileBuffer = await file.arrayBuffer();
-  const fileName = `${Date.now()}-${file.name}`;
-  const filePath = path.join(uploadDir, fileName);
+  const buffer = await file.arrayBuffer();
+  const base64 = Buffer.from(buffer).toString("base64");
+  const mimeType = file.type;
 
-  await writeFile(filePath, Buffer.from(fileBuffer));
+  const fileUrl = `data:${mimeType};base64,${base64}`;
 
-  return NextResponse.json({ fileUrl: `/uploads/${fileName}` }, { status: 200 });
+  return NextResponse.json({ fileUrl }, { status: 200 });
 }

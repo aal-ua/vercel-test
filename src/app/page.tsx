@@ -64,8 +64,8 @@ export default function Home() {
       <ul>
         {uploadedFiles.map((file, index) => (
           <li key={index}>
-            <a href={file} target="_blank" rel="noopener noreferrer">
-              {file}
+            <a href={file} download={`file-${index + 1}`}>
+              Download File {index + 1}
             </a>
           </li>
         ))}
