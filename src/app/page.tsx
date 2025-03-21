@@ -21,42 +21,34 @@ export default function Home() {
 
     setUploading(true);
 
-    const formData = new FormData();
-    formData.append("file", selectedFile);
+    const reader = new FileReader();
+    reader.readAsDataURL(selectedFile);
 
-    try {
+    reader.onload = async () => {
+      const fileData = reader.result; // Convert to Base64
+
       const response = await fetch("/api/upload", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileData, fileName: selectedFile.name }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setUploadedFiles([...uploadedFiles, data.fileUrl]);
-        setSelectedFile(null);
       } else {
         alert("File upload failed!");
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert("An error occurred while uploading.");
-    } finally {
+
       setUploading(false);
-    }
+    };
   };
 
   return (
     <div style={{ padding: "20px", maxWidth: "500px", margin: "auto" }}>
-      <h1>File Sharing App</h1>
+      <h1>Blob File Sharing</h1>
       <input type="file" onChange={handleFileChange} />
-      <button
-        onClick={handleUpload}
-        disabled={!selectedFile || uploading}
-        style={{
-          marginLeft: "10px",
-          cursor: selectedFile ? "pointer" : "not-allowed",
-        }}
-      >
+      <button onClick={handleUpload} disabled={!selectedFile || uploading}>
         {uploading ? "Uploading..." : "Upload"}
       </button>
 
